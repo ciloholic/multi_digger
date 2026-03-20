@@ -1,0 +1,7 @@
+telemetry: false
+auto_merge: true
+traverse_to_nested_projects: true
+generate_projects:
+  blocks:
+    - block_name: envs
+      include: "envs/**"
