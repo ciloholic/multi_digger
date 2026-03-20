@@ -1,0 +1,66 @@
+name: Digger
+
+permissions:
+  contents: write      # required to merge PRs
+  id-token: write      # required for workload-identity-federation
+  pull-requests: write # required to post PR comments
+  issues: read         # required to check if PR number is an issue or not
+  statuses: write      # required to validate combined PR status
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+    paths:
+      - 'envs/**'
+  issue_comment:
+    types:
+      - created
+
+concurrency:
+  group: digger-run-${{ github.event.pull_request.number || github.event.issue.number }}
+
+jobs:
+  digger:
+    name: Digger
+    runs-on: ubuntu-slim
+    timeout-minutes: 15
+    environment: sandbox
+
+    if: ${{ github.event_name == 'pull_request' || (github.event_name == 'issue_comment' && github.event.issue.pull_request != null && startsWith(github.event.comment.body, 'digger')) }}
+
+    steps:
+      # issue_commentイベントではgithub.shaがデフォルトブランチを指す為、PRのマージコミットを明示的に指定してPRのコードをチェックアウトする
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/merge
+        if: ${{ github.event_name == 'issue_comment' }}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        if: ${{ github.event_name != 'issue_comment' }}
+
+      - id: terraform_version
+        run: echo "value=$(sed -n 's/^terraform \(.*\)$/\1/p' .tool-versions)" >> $GITHUB_OUTPUT
+
+      - uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/opentaco-gha-role-sandbox
+          aws-region: ap-northeast-1
+
+      - name: Run Digger
+        uses: diggerhq/digger@752c62656bacf1e83ac9b9a3adfd3b7f0fb67fc6 # v0.6.143
+        with:
+          terraform-version: ${{ steps.terraform_version.outputs.value }}
+          setup-terraform: true
+          cache-dependencies: true
+          setup-aws: true
+          aws-region: ap-northeast-1
+          aws-role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/opentaco-gha-role-sandbox
+          upload-plan-destination: aws
+          upload-plan-destination-s3-bucket: tfplan-thi2fizo
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
