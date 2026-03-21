@@ -18,7 +18,7 @@ variable "tfstate_bucket_name" {
   description = "S3 bucket name for tfstate"
 }
 
-variable "tflock_table_name" {
-  type        = string
-  description = "DynamoDB table name for tfstate lock"
-}
+# variable "tflock_table_name" {
+#   type        = string
+#   description = "DynamoDB table name for tfstate lock"
+# }

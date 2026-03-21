@@ -16,15 +16,15 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
-resource "aws_dynamodb_table" "this" {
-  name         = var.dynamodb_table_name
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
+# resource "aws_dynamodb_table" "this" {
+#   name         = var.dynamodb_table_name
+#   billing_mode = "PAY_PER_REQUEST"
+#   hash_key     = "LockID"
 
-  deletion_protection_enabled = true
+#   deletion_protection_enabled = true
 
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
+#   attribute {
+#     name = "LockID"
+#     type = "S"
+#   }
+# }

@@ -2,8 +2,8 @@ locals {
   account_id          = data.aws_caller_identity.current.account_id
   tfplan_bucket_name  = "tfplan-thi2fizo"
   tfstate_bucket_name = "tfstate-seithus1"
-  tflock_table_name   = "tflock"
-  oidc_subjects       = ["repo:ciloholic/multi_digger:environment:sandbox"]
+  # tflock_table_name   = "DiggerDynamoDBLockTable"
+  oidc_subjects = ["repo:ciloholic/multi_digger:environment:sandbox"]
 }
 
 data "aws_caller_identity" "current" {}
@@ -22,8 +22,8 @@ resource "aws_iam_openid_connect_provider" "github_oidc_provider" {
 module "tfstate_s3_bucket" {
   source = "../../modules/opentaco/tfstate_backend/v1"
 
-  s3_bucket_name      = local.tfstate_bucket_name
-  dynamodb_table_name = local.tflock_table_name
+  s3_bucket_name = local.tfstate_bucket_name
+  # dynamodb_table_name = local.tflock_table_name
 }
 
 ##################################################
@@ -59,5 +59,5 @@ module "tfstate_role" {
   account_id          = local.account_id
   gha_role            = module.gha_role.name
   tfstate_bucket_name = local.tfstate_bucket_name
-  tflock_table_name   = local.tflock_table_name
+  # tflock_table_name   = local.tflock_table_name
 }

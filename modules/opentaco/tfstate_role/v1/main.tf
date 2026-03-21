@@ -33,19 +33,20 @@ data "aws_iam_policy_document" "this" {
 
   statement {
     actions = [
-      "s3:PutObject",
+      "s3:DeleteObject",
       "s3:GetObject",
+      "s3:PutObject",
     ]
     resources = ["arn:aws:s3:::${var.tfstate_bucket_name}/*"]
   }
 
-  statement {
-    actions = [
-      "dynamodb:DescribeTable",
-      "dynamodb:PutItem",
-      "dynamodb:GetItem",
-      "dynamodb:DeleteItem",
-    ]
-    resources = ["arn:aws:dynamodb:*:*:table/${var.tflock_table_name}"]
-  }
+  # statement {
+  #   actions = [
+  #     "dynamodb:DescribeTable",
+  #     "dynamodb:PutItem",
+  #     "dynamodb:GetItem",
+  #     "dynamodb:DeleteItem",
+  #   ]
+  #   resources = ["arn:aws:dynamodb:ap-northeast-1:${var.account_id}:table/${var.tflock_table_name}"]
+  # }
 }
