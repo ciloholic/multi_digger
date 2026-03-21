@@ -15,9 +15,7 @@ resource "aws_iam_policy" "this" {
 
 data "aws_iam_policy_document" "assume" {
   statement {
-    actions = [
-      "sts:AssumeRole",
-    ]
+    actions = ["sts:AssumeRole"]
 
     principals {
       type        = "AWS"
@@ -29,23 +27,26 @@ data "aws_iam_policy_document" "assume" {
 data "aws_iam_policy_document" "this" {
   # https://developer.hashicorp.com/terraform/language/backend/s3
   statement {
-    actions = [
-      "s3:ListBucket",
-    ]
-
-    resources = [
-      "arn:aws:s3:::${var.tfstate_bucket_name}",
-    ]
+    actions   = ["s3:ListBucket"]
+    resources = ["arn:aws:s3:::${var.tfstate_bucket_name}"]
   }
 
   statement {
     actions = [
-      "s3:PutObject",
+      "s3:DeleteObject",
       "s3:GetObject",
+      "s3:PutObject",
     ]
-
-    resources = [
-      "arn:aws:s3:::${var.tfstate_bucket_name}/*",
-    ]
+    resources = ["arn:aws:s3:::${var.tfstate_bucket_name}/*"]
   }
+
+  # statement {
+  #   actions = [
+  #     "dynamodb:DescribeTable",
+  #     "dynamodb:PutItem",
+  #     "dynamodb:GetItem",
+  #     "dynamodb:DeleteItem",
+  #   ]
+  #   resources = ["arn:aws:dynamodb:ap-northeast-1:${var.account_id}:table/${var.tflock_table_name}"]
+  # }
 }

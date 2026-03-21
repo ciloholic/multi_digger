@@ -15,7 +15,7 @@ on:
       - opened
       - synchronize
     paths:
-      - 'envs/**'
+      - 'datadog/**'
   issue_comment:
     types:
       - created
@@ -37,9 +37,12 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: refs/pull/${{ github.event.issue.number }}/merge
+          persist-credentials: false
         if: ${{ github.event_name == 'issue_comment' }}
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
         if: ${{ github.event_name != 'issue_comment' }}
 
       - id: terraform_version
@@ -53,9 +56,13 @@ jobs:
       - name: Run Digger
         uses: diggerhq/digger@752c62656bacf1e83ac9b9a3adfd3b7f0fb67fc6 # v0.6.143
         with:
+          no-backend: true
+          disable-locking: true
+          digger-version: v0.6.143 # usesをSHAピンにしているとビルドしてしまうので、digger-versionも明示的に指定する
           terraform-version: ${{ steps.terraform_version.outputs.value }}
           setup-terraform: true
           cache-dependencies: true
+          configure-checkout: false
           setup-aws: true
           aws-region: ap-northeast-1
           aws-role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/opentaco-gha-role-sandbox
@@ -64,3 +71,4 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AWS_CONFIG_FILE: ${{ github.workspace }}/.aws/config
