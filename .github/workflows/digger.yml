@@ -15,7 +15,7 @@ on:
       - opened
       - synchronize
     paths:
-      - 'envs/**'
+      - 'datadog/**'
   issue_comment:
     types:
       - created
@@ -53,9 +53,12 @@ jobs:
       - name: Run Digger
         uses: diggerhq/digger@752c62656bacf1e83ac9b9a3adfd3b7f0fb67fc6 # v0.6.143
         with:
+          no-backend: true
+          digger-version: v0.6.143 # usesをSHAピンにしているとビルドしてしまうので、digger-versionも明示的に指定する
           terraform-version: ${{ steps.terraform_version.outputs.value }}
           setup-terraform: true
           cache-dependencies: true
+          configure-checkout: false
           setup-aws: true
           aws-region: ap-northeast-1
           aws-role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/opentaco-gha-role-sandbox

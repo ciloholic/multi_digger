@@ -1,7 +1,8 @@
 locals {
   account_id          = data.aws_caller_identity.current.account_id
-  tfstate_bucket_name = "tfstate-seithus1"
   tfplan_bucket_name  = "tfplan-thi2fizo"
+  tfstate_bucket_name = "tfstate-seithus1"
+  tflock_table_name   = "tflock"
   oidc_subjects       = ["repo:ciloholic/multi_digger:environment:sandbox"]
 }
 
@@ -16,19 +17,20 @@ resource "aws_iam_openid_connect_provider" "github_oidc_provider" {
 }
 
 ##################################################
-# tfstate格納用S3バケット
+# tfstate格納用S3バケット + DynamoDB
 ##################################################
 module "tfstate_s3_bucket" {
-  source = "../../modules/opentaco/s3/tfstate/v1"
+  source = "../../modules/opentaco/tfstate_backend/v1"
 
-  s3_bucket_name = local.tfstate_bucket_name
+  s3_bucket_name      = local.tfstate_bucket_name
+  dynamodb_table_name = local.tflock_table_name
 }
 
 ##################################################
 # tfplan格納用S3バケット
 ##################################################
 module "tfplan_s3_bucket" {
-  source = "../../modules/opentaco/s3/tfplan/v1"
+  source = "../../modules/opentaco/tfplan_s3_bucket/v1"
 
   s3_bucket_name  = local.tfplan_bucket_name
   expiration_days = 7
@@ -43,7 +45,7 @@ module "gha_role" {
   name               = "opentaco-gha-role-sandbox"
   account_id         = local.account_id
   subjects           = local.oidc_subjects
-  roles_to_assume    = ["arn:aws:iam::${local.account_id}:role/opentaco-tfstate-role"]
+  roles_to_assume    = ["arn:aws:iam::${local.account_id}:role/opentaco-tfstate-role-*"]
   tfplan_bucket_name = module.tfplan_s3_bucket.name
 }
 
@@ -57,4 +59,5 @@ module "tfstate_role" {
   account_id          = local.account_id
   gha_role            = module.gha_role.name
   tfstate_bucket_name = local.tfstate_bucket_name
+  tflock_table_name   = local.tflock_table_name
 }
